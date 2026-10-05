@@ -7,10 +7,10 @@ This program assume the input to be in uppercase
 <br>
 
 ## Features
--ECB mode
--PKCS#7 paddling
--hexadecimal encoding
--encryption
+-ECB mode<br>
+-PKCS#7 paddling<br>
+-hexadecimal encoding<br>
+-encryption<br>
 -decryption
 
 ## how to use
