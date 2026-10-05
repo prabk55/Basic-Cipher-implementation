@@ -13,7 +13,16 @@ int main(int no_of_arg, char *arg[])
             int vkey_len = strlen(arg[3]);
             int plaintext_len = strlen(arg[4]);
             char encrypted_text[100];
-            strcpy(plaintext,arg[4]);
+             FILE *f = fopen(arg[4], "r");
+            if (f != NULL)
+            {
+                fread(plaintext, 1, 99, f);
+                plaintext[99] = '\0';
+            }
+            else
+            {
+                strcpy(plaintext, arg[4]);
+            }
 
             char vkey[100];
             
@@ -46,7 +55,16 @@ int main(int no_of_arg, char *arg[])
             int vkey_len = strlen(arg[3]);
             int ciphertext_len = strlen(arg[4]);
             char decrypted_text[100];
-            strcpy(ciphertext,arg[4]);
+             FILE *f = fopen(arg[4], "r");
+            if (f != NULL)
+            {
+                fread(ciphertext, 1, 99, f);
+                ciphertext[99] = '\0';
+            }
+            else
+            {
+                strcpy(ciphertext, arg[4]);
+            }
 
             char vkey[100];
             
