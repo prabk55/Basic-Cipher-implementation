@@ -62,16 +62,112 @@ int main(int no_of_arg, char *arg[])
             0x01, 0x02, 0x04, 0x08, 0x10,
             0x20, 0x40, 0x80, 0x1B, 0x36};
 
+        unsigned char key[16];
+        memcpy(key, arg[3], 16); // memcpy will take exactly 16 bytes no need to put null character at the end
+        unsigned keys[11][4][4];
+        unsigned char key_0[4][4];
+
+        for (int j = 0; j < 16; j++)
+        {
+
+            if (j <= 3)
+            {
+                keys[0][j][0] = key[j];
+            }
+            else if (j > 3 && j <= 7)
+            {
+                keys[0][j - 4][1] = key[j];
+            }
+            else if (j > 7 && j <= 11)
+            {
+                keys[0][j - 8][2] = key[j];
+            }
+            else if (j > 11 && j <= 15)
+            {
+                keys[0][j - 12][3] = key[j];
+            }
+        }
+        for(int i=1;i<=10;i++){
+
+             // ADD ROUND KEY
+
+                    unsigned char tempK[4][1];
+                    // ROT WORD
+                    tempK[0][0] = keys[i-1][1][3];
+                    tempK[1][0] = keys[i-1][2][3];
+                    tempK[2][0] = keys[i-1][3][3];
+                    tempK[3][0] = keys[i-1][0][3];
+
+                    // SUB WORD
+
+                    for (int m = 0; m < 4; m++)
+                    {
+
+                        tempK[m][0] = sbox[tempK[m][0]];
+                    }
+                    // RCON
+
+                    tempK[0][0] ^= Rcon[i-1];
+                    for (int m = 1; m < 4; m++)
+                    {
+                        tempK[m][0] ^= 0;
+                    }
+
+                    unsigned char w3[4][1], w2[4][1], w1[4][1], w0[4][1];
+
+                    for (int m = 0; m < 4; m++)
+                    {
+
+                        w0[m][0] = keys[i-1][m][0];
+                        w1[m][0] = keys[i-1][m][1];
+                        w2[m][0] = keys[i-1][m][2];
+                        w3[m][0] = keys[i-1][m][3];
+                    }
+
+                    // w4,w5,w6,w7
+                    unsigned char w4[4][1], w5[4][1], w6[4][1], w7[4][1];
+
+                    for (int n = 0; n < 4; n++)
+                    {
+
+                        w4[n][0] = tempK[n][0] ^ w0[n][0];
+                    }
+                    for (int n = 0; n < 4; n++)
+                    {
+
+                        w5[n][0] = w1[n][0] ^ w4[n][0];
+                    }
+                    for (int n = 0; n < 4; n++)
+                    {
+
+                        w6[n][0] = w2[n][0] ^ w5[n][0];
+                    }
+                    for (int n = 0; n < 4; n++)
+                    {
+
+                        w7[n][0] = w3[n][0] ^ w6[n][0];
+                    }
+                    for (int m = 0; m < 4; m++)
+                    {
+                        keys[i][m][0] = w4[m][0];
+                        keys[i][m][1] = w5[m][0];
+                        keys[i][m][2] = w6[m][0];
+                        keys[i][m][3] = w7[m][0];
+                    }
+
+
+
+
+
+        }
+
         if (strcmp(arg[1], "-e") == 0)
         {
-            unsigned char key[16];
-            memcpy(key, arg[3], 16); // memcpy will take exactly 16 bytes no need to put null character at the end
 
-            unsigned char key_0[4][4];
             unsigned char state_0[4][4];
             unsigned char plaintext[128];
             unsigned char ciphertext[128];
-            unsigned char key_1[4][4];
+            
             unsigned char state_1[4][4];
 
             FILE *f = fopen(arg[4], "r");
@@ -102,34 +198,34 @@ int main(int no_of_arg, char *arg[])
                     if (j <= 3)
                     {
                         state_0[j][0] = plaintext[i + j];
-                        key_0[j][0] = key[j];
+                        
 
-                        state_1[j][0] = key_0[j][0] ^ state_0[j][0];
+                        state_1[j][0] = keys[0][j][0] ^ state_0[j][0];
                     }
                     else if (j > 3 && j <= 7)
                     {
                         state_0[j - 4][1] = plaintext[i + j];
-                        key_0[j - 4][1] = key[j];
+                       
 
-                        state_1[j - 4][1] = key_0[j - 4][1] ^ state_0[j - 4][1];
+                        state_1[j - 4][1] = keys[0][j - 4][1] ^ state_0[j - 4][1];
                     }
                     else if (j > 7 && j <= 11)
                     {
                         state_0[j - 8][2] = plaintext[i + j];
-                        key_0[j - 8][2] = key[j];
+                        
 
-                        state_1[j - 8][2] = key_0[j - 8][2] ^ state_0[j - 8][2];
+                        state_1[j - 8][2] = keys[0][j - 8][2] ^ state_0[j - 8][2];
                     }
                     else if (j > 11 && j <= 15)
                     {
                         state_0[j - 12][3] = plaintext[i + j];
-                        key_0[j - 12][3] = key[j];
+                        
 
-                        state_1[j - 12][3] = key_0[j - 12][3] ^ state_0[j - 12][3];
+                        state_1[j - 12][3] = keys[0][j - 12][3] ^ state_0[j - 12][3];
                     }
                 }
 
-                memcpy(key_1, key_0, sizeof(key_0));
+                
 
                 for (int k = 0; k < 9; k++) // ROUND 1 to 9
                 {
@@ -167,71 +263,7 @@ int main(int no_of_arg, char *arg[])
                     }
                     memcpy(state_1, tempM, sizeof(tempM));
 
-                    // ADD ROUND KEY
-
-                    unsigned char tempK[4][1];
-                    // ROT WORD
-                    tempK[0][0] = key_1[1][3];
-                    tempK[1][0] = key_1[2][3];
-                    tempK[2][0] = key_1[3][3];
-                    tempK[3][0] = key_1[0][3];
-
-                    // SUB WORD
-
-                    for (int m = 0; m < 4; m++)
-                    {
-
-                        tempK[m][0] = sbox[tempK[m][0]];
-                    }
-                    // RCON
-
-                    tempK[0][0] ^= Rcon[k];
-                    for (int m = 1; m < 4; m++)
-                    {
-                        tempK[m][0] ^= 0;
-                    }
-
-                    unsigned char w3[4][1], w2[4][1], w1[4][1], w0[4][1];
-
-                    for (int m = 0; m < 4; m++)
-                    {
-
-                        w0[m][0] = key_1[m][0];
-                        w1[m][0] = key_1[m][1];
-                        w2[m][0] = key_1[m][2];
-                        w3[m][0] = key_1[m][3];
-                    }
-
-                    // w4,w5,w6,w7
-                    unsigned char w4[4][1], w5[4][1], w6[4][1], w7[4][1];
-
-                    for (int n = 0; n < 4; n++)
-                    {
-
-                        w4[n][0] = tempK[n][0] ^ w0[n][0];
-                    }
-                    for (int n = 0; n < 4; n++)
-                    {
-
-                        w5[n][0] = w1[n][0] ^ w4[n][0];
-                    }
-                    for (int n = 0; n < 4; n++)
-                    {
-
-                        w6[n][0] = w2[n][0] ^ w5[n][0];
-                    }
-                    for (int n = 0; n < 4; n++)
-                    {
-
-                        w7[n][0] = w3[n][0] ^ w6[n][0];
-                    }
-                    for (int m = 0; m < 4; m++)
-                    {
-                        key_1[m][0] = w4[m][0];
-                        key_1[m][1] = w5[m][0];
-                        key_1[m][2] = w6[m][0];
-                        key_1[m][3] = w7[m][0];
-                    }
+                   
 
                     // XOR WITH KEY
 
@@ -241,7 +273,7 @@ int main(int no_of_arg, char *arg[])
                         for (int n = 0; n < 4; n++)
                         {
 
-                            state_1[m][n] ^= key_1[m][n];
+                            state_1[m][n] ^= keys[k+1][m][n];
                         }
                     }
                 }
@@ -268,70 +300,7 @@ int main(int no_of_arg, char *arg[])
                     state_1[3][m] = temp3[m];
                 }
 
-                // add roud key
-                unsigned char tempK[4][1];
-                // ROT WORD
-                tempK[0][0] = key_1[1][3];
-                tempK[1][0] = key_1[2][3];
-                tempK[2][0] = key_1[3][3];
-                tempK[3][0] = key_1[0][3];
-
-                // SUB WORD
-
-                for (int m = 0; m < 4; m++)
-                {
-
-                    tempK[m][0] = sbox[tempK[m][0]];
-                }
-                // RCON
-
-                tempK[0][0] ^= Rcon[9];
-                for (int m = 1; m < 4; m++)
-                {
-                    tempK[m][0] ^= 0;
-                }
-
-                unsigned char w3[4][1], w2[4][1], w1[4][1], w0[4][1];
-
-                for (int m = 0; m < 4; m++)
-                {
-
-                    w0[m][0] = key_1[m][0];
-                    w1[m][0] = key_1[m][1];
-                    w2[m][0] = key_1[m][2];
-                    w3[m][0] = key_1[m][3];
-                }
-
-                // w4,w5,w6,w7
-                unsigned char w4[4][1], w5[4][1], w6[4][1], w7[4][1];
-
-                for (int n = 0; n < 4; n++)
-                {
-
-                    w4[n][0] = tempK[n][0] ^ w0[n][0];
-                }
-                for (int n = 0; n < 4; n++)
-                {
-
-                    w5[n][0] = w1[n][0] ^ w4[n][0];
-                }
-                for (int n = 0; n < 4; n++)
-                {
-
-                    w6[n][0] = w2[n][0] ^ w5[n][0];
-                }
-                for (int n = 0; n < 4; n++)
-                {
-
-                    w7[n][0] = w3[n][0] ^ w6[n][0];
-                }
-                for (int m = 0; m < 4; m++)
-                {
-                    key_1[m][0] = w4[m][0];
-                    key_1[m][1] = w5[m][0];
-                    key_1[m][2] = w6[m][0];
-                    key_1[m][3] = w7[m][0];
-                }
+               
 
                 // XOR WITH KEY
 
@@ -341,7 +310,7 @@ int main(int no_of_arg, char *arg[])
                     for (int n = 0; n < 4; n++)
                     {
 
-                        state_1[m][n] ^= key_1[m][n];
+                        state_1[m][n] ^= keys[10][m][n];
                     }
                 }
 
