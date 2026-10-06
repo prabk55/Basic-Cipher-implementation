@@ -17,4 +17,4 @@ This program assume the input to be in uppercase
 mode : for vigenere use "-vig" and for AES use "-aes"<br>
 E/D : for encryption use "-e" and for decryption use "-d"<br><br>
 
-syntax : -mode -E/D key plaintesxt/ciphertext
+syntax : -E/D -mode key plaintesxt/ciphertext
